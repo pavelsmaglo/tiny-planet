@@ -3,11 +3,18 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
 
-# If available, import llama_cpp to run a local LLM
+# If available, import llama_cpp to run a local LLM. Attempt to install the
+# package automatically if it is missing.
 try:
     from llama_cpp import Llama
-except ImportError:  # library might not be installed
-    Llama = None
+except ImportError:
+    import subprocess
+    import sys
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "llama-cpp-python"])
+        from llama_cpp import Llama  # try again after installation
+    except Exception:
+        Llama = None
 
 
 class LLMApp:

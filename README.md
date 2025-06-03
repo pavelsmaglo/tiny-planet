@@ -4,12 +4,12 @@ This repository includes a small Tkinter-based application to run a local langua
 
 ## Requirements
 - Python 3.10 or newer
-- `llama_cpp` Python package (for running the `.gguf` model)
 - `python-docx` if you want to save output as `.docx`
 
-Install packages with:
+The application will attempt to install `llama-cpp-python` automatically the
+first time it is launched. If you prefer to install dependencies manually run:
 ```bash
-pip install llama_cpp_python python-docx
+pip install llama-cpp-python python-docx
 ```
 
 ## Usage
