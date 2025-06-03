@@ -77,22 +77,22 @@ class LLMApp:
         if os.path.isfile(model_or_path):
             # Use the file name without extension as the model name
             name = Path(model_or_path).stem
+            modelfile_contents = f"FROM {model_or_path}"
+            with tempfile.NamedTemporaryFile("w", delete=False) as tmp:
+                tmp.write(modelfile_contents)
+                tmp_path = tmp.name
             try:
-                existing = [m["name"] for m in ollama.list()["models"]]
-            except Exception:
-                existing = []
-            if name not in existing:
-                modelfile_contents = f"FROM {model_or_path}"
-                with tempfile.NamedTemporaryFile("w", delete=False) as tmp:
-                    tmp.write(modelfile_contents)
-                    tmp_path = tmp.name
+                # Ollama's Python package changed parameter names across versions.
+                # Attempt the newer API first and fall back if necessary.
                 try:
                     ollama.create(model=name, path=tmp_path)
-                except Exception as e:
-                    messagebox.showerror("Error", f"Failed to register model: {e}")
-                    os.unlink(tmp_path)
-                    return None
+                except TypeError:
+                    ollama.create(name=name, modelfile=tmp_path)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to register model: {e}")
                 os.unlink(tmp_path)
+                return None
+            os.unlink(tmp_path)
             return name
 
         return model_or_path
