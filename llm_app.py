@@ -1,30 +1,28 @@
 import os
+import subprocess
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
 
-# If available, import llama_cpp to run a local LLM. Attempt to install the
-# package automatically if it is missing. If installation fails we keep Llama as
-# None so the GUI can display an informative error message.
+# Use Ollama to run the local LLM. Install the `ollama` package on first run if
+# needed so that the GUI can communicate with the local Ollama server.
 try:
-    from llama_cpp import Llama
-except ImportError:  # attempt automatic installation
-    import subprocess
+    import ollama
+except ImportError:
     import sys
-    Llama = None
     try:
         subprocess.check_call([
             sys.executable,
             "-m",
             "pip",
             "install",
-            "llama-cpp-python",
+            "ollama",
         ])
-        from llama_cpp import Llama  # retry after installation
-    except Exception as e:
-        print("Failed to install llama-cpp-python:", e)
-        print("Install Visual Studio Build Tools and CMake, then run:\n"
-              "pip install llama-cpp-python")
+        import ollama  # retry after installation
+    except Exception as e:  # keep a stub so we can report the error in the UI
+        ollama = None
+        print("Failed to install the ollama package:", e)
+        print("Please install it manually with 'pip install ollama'")
 
 
 class LLMApp:
@@ -54,8 +52,6 @@ class LLMApp:
 
         tk.Button(master, text="Start", command=self.start_loop).grid(row=4, column=1, pady=10)
 
-        self.llm = None
-
     def browse_folder(self):
         folder = filedialog.askdirectory()
         if folder:
@@ -63,31 +59,32 @@ class LLMApp:
             self.folder_entry.insert(0, folder)
 
     def browse_model(self):
-        path = filedialog.askopenfilename(filetypes=[('GGUF files', '*.gguf'), ('All files', '*.*')])
+        path = filedialog.askopenfilename(filetypes=[('Model files', '*.gguf'), ('All files', '*.*')])
         if path:
             self.model_entry.delete(0, tk.END)
             self.model_entry.insert(0, path)
 
     def load_model(self):
-        if Llama is None:
-            messagebox.showerror("Error", "llama_cpp library not installed")
+        if ollama is None:
+            messagebox.showerror("Error", "The 'ollama' package is not available")
             return False
-        self.model_path = self.model_entry.get()
-        if not os.path.isfile(self.model_path):
-            messagebox.showerror("Error", f"Model not found: {self.model_path}")
+        self.model_name = self.model_entry.get().strip()
+        if not self.model_name:
+            messagebox.showwarning("Warning", "Model name is empty")
             return False
-        if self.llm is None:
-            self.llm = Llama(model_path=self.model_path)
         return True
 
     def run_llm(self, prompt):
         if not self.load_model():
             return ""
-        # Basic usage of llama_cpp
-        result = self.llm(prompt, max_tokens=256)
-        if isinstance(result, dict) and 'choices' in result:
-            return result['choices'][0]['text']
-        return str(result)
+        try:
+            result = ollama.generate(model=self.model_name, prompt=prompt)
+            if isinstance(result, dict):
+                return result.get('response', '')
+            return str(result)
+        except Exception as e:
+            messagebox.showerror("Error", f"Ollama failed: {e}")
+            return ""
 
     def process_folder(self, folder, prompt):
         files = list(Path(folder).glob('*'))

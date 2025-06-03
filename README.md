@@ -1,18 +1,17 @@
 # Tiny Planet LLM App
 
-This repository includes a small Tkinter-based application to run a local language model on Windows. The GUI lets you enter a prompt, choose a folder to process, select the model file and pick an output format.
+This repository includes a small Tkinter-based application to run a local language model on Windows using [Ollama](https://ollama.ai/). The GUI lets you enter a prompt, choose a folder to process, select the model name (or path) and pick an output format.
 
 ## Requirements
 - Python 3.10 or newer
 - `python-docx` if you want to save output as `.docx`
 
-The application will attempt to install `llama-cpp-python` automatically the
-first time it is launched. If the installation fails with a build error,
-make sure you have [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/)
-and CMake installed. Then install the package manually. You can also install
-all dependencies upfront by running:
+The application will attempt to install the `ollama` Python package automatically
+the first time it is launched so it can communicate with the local Ollama server.
+Make sure Ollama 0.8.0 or newer is installed and running. You can also install
+the dependencies upfront by running:
 ```bash
-pip install llama-cpp-python python-docx
+pip install ollama python-docx
 ```
 
 ## Usage
@@ -21,7 +20,7 @@ pip install llama-cpp-python python-docx
 python llm_app.py
 ```
 2. Enter a prompt and select the folder that contains the files you want processed.
-3. The model path field is pre-filled with the example path to `gemma-3-12b-it-Q4_K_M.gguf` on Windows. Change it if your model is located elsewhere.
+3. The model field is pre-filled with the example name/path `gemma-3-12b-it-Q4_K_M.gguf`. Change it if your model is located elsewhere or uses a different name.
 4. Pick the desired output format (text or docx) and click **Start** to begin the loop. After each iteration you will be asked whether you want to run again.
 
 Outputs are saved in a new `llm_output` folder within the selected directory.
