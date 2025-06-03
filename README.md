@@ -20,7 +20,7 @@ pip install ollama python-docx
 python llm_app.py
 ```
 2. Enter a prompt and select the folder that contains the files you want processed.
-3. The model field is pre-filled with the example name/path `gemma-3-12b-it-Q4_K_M.gguf`. Change it if your model is located elsewhere or uses a different name.
+3. The model field is pre-filled with the example name/path `gemma-3-12b-it-Q4_K_M.gguf`. You can enter a model **name** that already exists in Ollama or provide a path to a local `.gguf` file. If a path is supplied, the app will register it as a model automatically.
 4. Pick the desired output format (text or docx) and click **Start** to begin the loop. After each iteration you will be asked whether you want to run again.
 
 Outputs are saved in a new `llm_output` folder within the selected directory.

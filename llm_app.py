@@ -64,15 +64,39 @@ class LLMApp:
             self.model_entry.delete(0, tk.END)
             self.model_entry.insert(0, path)
 
+    def ensure_model_available(self, model_or_path: str) -> str | None:
+        """Return an Ollama model name, creating one from a local path if needed."""
+        if not model_or_path:
+            messagebox.showwarning("Warning", "Model name is empty")
+            return None
+
+        # If the value looks like a path to a local GGUF file, create a temporary
+        # model for it. Ollama's API identifies models by name and can't accept a
+        # raw file path directly.
+        if os.path.isfile(model_or_path):
+            # Use the file name without extension as the model name
+            name = Path(model_or_path).stem
+            try:
+                existing = [m["name"] for m in ollama.list()["models"]]
+            except Exception:
+                existing = []
+            if name not in existing:
+                modelfile = f"FROM {model_or_path}"
+                try:
+                    ollama.create(model=name, modelfile=modelfile)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to register model: {e}")
+                    return None
+            return name
+
+        return model_or_path
+
     def load_model(self):
         if ollama is None:
             messagebox.showerror("Error", "The 'ollama' package is not available")
             return False
-        self.model_name = self.model_entry.get().strip()
-        if not self.model_name:
-            messagebox.showwarning("Warning", "Model name is empty")
-            return False
-        return True
+        self.model_name = self.ensure_model_available(self.model_entry.get().strip())
+        return bool(self.model_name)
 
     def run_llm(self, prompt):
         if not self.load_model():
